@@ -1135,21 +1135,7 @@ if (word.startsWith('vaen') && i + 1 < words.length) {
                         });
                         found = true;
                     }
-                                               // Verbes à l'infinitif (relatives NG → FR)
-for (const [frVerb, verbData] of Object.entries(dict.verbs)) {
-    if (verbData.ng_inf === word) {
-        // C'est un infinitif nilfgaardien, probablement une relative
-        const frForm = conjugateFrench(frVerb, subject, tense);
-        result.push(`qui ${frForm}`);
-        analysis.push({ 
-            original: word, 
-            translation: `qui ${frForm}`, 
-            type: `verbe relatif (${subject}, ${tense})` 
-        });
-        found = true;
-        break;
-    }
-}
+                                               
              // Verbes à l'infinitif (probablement des relatives)
 for (const [frVerb, verbData] of Object.entries(dict.verbs)) {
     if (verbData.ng_inf === word) {
