@@ -277,39 +277,52 @@ console.log("Script démarré");
     return verbData.ng_radical + ending;
             
              function detectRelativeContext(words, verbIndex) {
+    console.log(`Détection relative pour verbe à l'index ${verbIndex}`, words);
+    
     // Chercher "qui" juste avant le verbe
     if (verbIndex > 0 && words[verbIndex - 1] === 'qui') {
+        console.log("Trouvé 'qui' avant le verbe");
+        
         // Vérifier qu'il y a un nom/groupe nominal avant "qui"
         for (let i = verbIndex - 2; i >= 0; i--) {
             const word = words[i].toLowerCase();
+            console.log(`Analyse du mot "${word}" à l'index ${i}`);
             
             // Si on trouve un nom simple
             if (dict.nouns[word]) {
+                console.log(`Nom trouvé: ${word}`);
                 return 'relative';
             }
             
             // Vérifier les expressions de 2 mots
             if (i > 0) {
                 const expression = `${words[i-1]} ${word}`;
+                console.log(`Test expression: "${expression}"`);
                 if (dict.expressions[expression]) {
+                    console.log(`Expression trouvée: ${expression}`);
                     return 'relative';
                 }
             }
             
+            // Test si c'est un adjectif
+            const adjResult = getSingularAdjective(word);
+            console.log(`Test adjectif "${word}":`, adjResult);
+            
             // Ignorer les articles/adjectifs, continuer la recherche
             if (['le', 'la', 'les', 'un', 'une', 'des'].includes(word) ||
                 dict.adjectives[word] ||
-                getSingularAdjective(word).found) {
+                adjResult.found) {
+                console.log(`Mot ignoré: ${word}`);
                 continue;
             }
             
-            // Si on tombe sur autre chose, arrêter
+            console.log(`Arrêt sur: ${word}`);
             break;
         }
     }
     
     return 'simple';
-             }                                                   }
+}                                                   }
         
         function detectSubject(words) {
     // Chercher d'abord les pronoms nilfgaardiens
