@@ -275,6 +275,7 @@ console.log("Script démarré");
     
     const ending = ngConjugations[tense]?.[person] || '';
     return verbData.ng_radical + ending;
+            
              function detectRelativeContext(words, verbIndex) {
     // Chercher "qui" juste avant le verbe
     if (verbIndex > 0 && words[verbIndex - 1] === 'qui') {
@@ -282,16 +283,23 @@ console.log("Script démarré");
         for (let i = verbIndex - 2; i >= 0; i--) {
             const word = words[i].toLowerCase();
             
-            // Si on trouve un nom, c'est une relative !
-            if (dict.nouns[word] || 
-                dict.expressions[word] || 
-                (i > 0 && dict.expressions[`${words[i-1]} ${word}`])) {
+            // Si on trouve un nom simple
+            if (dict.nouns[word]) {
                 return 'relative';
+            }
+            
+            // Vérifier les expressions de 2 mots
+            if (i > 0) {
+                const expression = `${words[i-1]} ${word}`;
+                if (dict.expressions[expression]) {
+                    return 'relative';
+                }
             }
             
             // Ignorer les articles/adjectifs, continuer la recherche
             if (['le', 'la', 'les', 'un', 'une', 'des'].includes(word) ||
-                dict.adjectives[word]) {
+                dict.adjectives[word] ||
+                getSingularAdjective(word).found) {
                 continue;
             }
             
@@ -301,7 +309,7 @@ console.log("Script démarré");
     }
     
     return 'simple';
-}                                                   }
+             }                                                   }
         
         function detectSubject(words) {
     // Chercher d'abord les pronoms nilfgaardiens
