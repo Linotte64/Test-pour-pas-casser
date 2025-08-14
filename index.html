@@ -114,11 +114,12 @@ console.log("Script démarré");
                 'au revoir': { ng: 'va faill', gender_fr: 'm', gender_ng: 'm' }
             },
             others: {
-                'le': { ng: '', type: 'article' },
-                'la': { ng: '', type: 'article' },
-                'les': { ng: '', type: 'article' },
-                'et': { ng: 'a', type: 'conjonction' }
-            },
+    'le': { ng: '', type: 'article' },
+    'la': { ng: '', type: 'article' },
+    'les': { ng: '', type: 'article' },
+    'qui': { ng: '', type: 'pronom relatif' },
+    'et': { ng: 'a', type: 'conjonction' }
+},
             irregularPlurals: {
                 'œil': 'yeux',
                 'oeil': 'yeux',
@@ -1094,7 +1095,7 @@ if (word.startsWith('vaen') && i + 1 < words.length) {
                                     break;
                                 }
                             }
-                            
+ 
                             // Vérifier si c'est un pluriel nilfgaardien
                             const pluralCheck = detectNgPlural(nextWord);
                             if (pluralCheck.isPlural) {
@@ -1113,7 +1114,22 @@ if (word.startsWith('vaen') && i + 1 < words.length) {
                         });
                         found = true;
                     }
-                    
+                                               // Verbes à l'infinitif (relatives NG → FR)
+for (const [frVerb, verbData] of Object.entries(dict.verbs)) {
+    if (verbData.ng_inf === word) {
+        // C'est un infinitif nilfgaardien, probablement une relative
+        const frForm = conjugateFrench(frVerb, subject, tense);
+        result.push(`qui ${frForm}`);
+        analysis.push({ 
+            original: word, 
+            translation: `qui ${frForm}`, 
+            type: `verbe relatif (${subject}, ${tense})` 
+        });
+        found = true;
+        break;
+    }
+}
+                            
                     // Verbes conjugués
                     for (const [frVerb, verbData] of Object.entries(dict.verbs)) {
                         for (const tense of ['présent', 'imparfait', 'futur']) {
