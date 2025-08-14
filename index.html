@@ -277,16 +277,18 @@ console.log("Script démarré");
     return verbData.ng_radical + ending;
         }
             
-             function detectRelativeContext(words, verbIndex) {
+            function detectRelativeContext(words, verbIndex) {
     console.log(`Détection relative pour verbe à l'index ${verbIndex}`, words);
     
-    // Chercher "qui" juste avant le verbe
-    if (verbIndex > 0 && words[verbIndex - 1] === 'qui') {
-        console.log("Trouvé 'qui' avant le verbe");
-        
-        // Vérifier qu'il y a un nom/groupe nominal avant "qui"
-        for (let i = verbIndex - 2; i >= 0; i--) {
-            const word = words[i].toLowerCase();
+    // Chercher "qui" ou "[qui]" juste avant le verbe
+    if (verbIndex > 0) {
+        const previousWord = words[verbIndex - 1];
+        if (previousWord === 'qui' || previousWord === '[qui]') {
+            console.log("Trouvé 'qui' avant le verbe");
+            
+            // Vérifier qu'il y a un nom/groupe nominal avant "qui"
+            for (let i = verbIndex - 2; i >= 0; i--) {
+                const word = words[i].toLowerCase();
             console.log(`Analyse du mot "${word}" à l'index ${i}`);
             
             // Si on trouve un nom simple
@@ -984,18 +986,34 @@ if ((person === 'il' || person === 'elle') && tense === 'présent') {
                     }
                     
                     if (!found) {
-                        // Autres (incluant pronoms)
-                        const other = dict.others[word];
-                        if (other && (other.ng !== '' || other.show)) {
-                            if (other.ng !== '') {
-                                result.push(other.ng);
-                                analysis.push({ original: word, translation: other.ng, type: other.type });
-                            } else {
-                                analysis.push({ original: word, translation: '[ignoré]', type: other.type });
-                            }
-                            found = true;
-                        }
-                    }
+    // Traitement spécial pour "qui"
+    if (word === 'qui') {
+        // Détection contextuelle : interrogatif vs relatif
+        if (i === 0 || i === 1) {
+            // Début de phrase = interrogatif, traduire normalement
+            result.push('[qui-interrogatif]'); // À remplacer par la vraie traduction
+            analysis.push({ original: word, translation: '[qui-interrogatif]', type: 'pronom interrogatif' });
+        } else {
+            // Probable relatif - ignorer pour la détection
+            analysis.push({ original: word, translation: '[ignoré pour relative]', type: 'pronom relatif' });
+        }
+        found = true;
+    }
+    
+    // Autres mots
+    if (!found) {
+        const other = dict.others[word];
+        if (other && (other.ng !== '' || other.show)) {
+            if (other.ng !== '') {
+                result.push(other.ng);
+                analysis.push({ original: word, translation: other.ng, type: other.type });
+            } else {
+                analysis.push({ original: word, translation: '[ignoré]', type: other.type });
+            }
+            found = true;
+        }
+    }
+}
                     
                     if (!found) {
                         result.push(`[${word}]`);
