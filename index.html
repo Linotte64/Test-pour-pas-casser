@@ -275,6 +275,7 @@ console.log("Script démarré");
     
     const ending = ngConjugations[tense]?.[person] || '';
     return verbData.ng_radical + ending;
+        }
             
              function detectRelativeContext(words, verbIndex) {
     console.log(`Détection relative pour verbe à l'index ${verbIndex}`, words);
@@ -912,11 +913,11 @@ for (const [frVerb, verbData] of Object.entries(dict.verbs)) {
         for (const person of ['je', 'tu', 'il', 'elle', 'nous', 'vous', 'ils', 'elles']) {
             const conjugated = conjugateFrench(frVerb, person, tense);
             if (conjugated === word) {
-                // NOUVEAU : Détecter le contexte pour la 3ème personne
-                let context = 'simple';
-                if ((person === 'il' || person === 'elle') && tense === 'présent') {
-                    context = detectRelativeContext(words, i);
-                }
+                // Détecter le contexte pour la 3ème personne
+let context = 'simple';
+if ((person === 'il' || person === 'elle') && tense === 'présent') {
+    context = detectRelativeContext(words, i);
+        }
                 
                 const ngForm = conjugateNG(verbData, subject, tense, context);
                 result.push(ngForm);
@@ -1150,7 +1151,21 @@ for (const [frVerb, verbData] of Object.entries(dict.verbs)) {
         break;
     }
 }
-                            
+             // Verbes à l'infinitif (probablement des relatives)
+for (const [frVerb, verbData] of Object.entries(dict.verbs)) {
+    if (verbData.ng_inf === word) {
+        // Si c'est un infinitif NG, c'est probablement une relative
+        const frForm = conjugateFrench(frVerb, subject, 'présent');
+        result.push(`qui ${frForm}`);
+        analysis.push({ 
+            original: word, 
+            translation: `qui ${frForm}`, 
+            type: `verbe relatif (${subject})` 
+        });
+        found = true;
+        break;
+    }
+}               
                     // Verbes conjugués
                     for (const [frVerb, verbData] of Object.entries(dict.verbs)) {
                         for (const tense of ['présent', 'imparfait', 'futur']) {
