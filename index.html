@@ -283,7 +283,7 @@ console.log("Script démarré");
     // Chercher "qui" ou "[qui]" juste avant le verbe
     if (verbIndex > 0) {
         const previousWord = words[verbIndex - 1];
-        if (previousWord === 'qui' || previousWord === '[qui]') {
+      if (previousWord === 'qui' || previousWord.includes('ignoré pour relative')) {
             console.log("Trouvé 'qui' avant le verbe");
             
             // Vérifier qu'il y a un nom/groupe nominal avant "qui"
@@ -322,7 +322,8 @@ console.log("Script démarré");
             console.log(`Arrêt sur: ${word}`);
             break;
         }
-    
+        }
+    }
     return 'simple';
 }                                                   }
         
@@ -920,7 +921,7 @@ if ((person === 'il' || person === 'elle') && tense === 'présent') {
     context = detectRelativeContext(words, i);
         }
                 
-                const ngForm = conjugateNG(verbData, subject, tense, context);
+                const ngForm = conjugateNG(verbData, person, tense, context);
                 result.push(ngForm);
                 analysis.push({ 
                     original: word, 
