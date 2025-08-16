@@ -917,25 +917,27 @@ if (['aurai', 'auras', 'aura', 'aurons', 'aurez', 'auront'].includes(word) && i 
                     // Verbes (avec tous les temps)
 for (const [frVerb, verbData] of Object.entries(dict.verbs)) {
     for (const tense of ['présent', 'imparfait', 'futur']) {
-        for (const person of ['je', 'tu', 'il', 'elle', 'nous', 'vous', 'ils', 'elles']) {
-            const conjugated = conjugateFrench(frVerb, person, tense);
-            if (conjugated === word) {
-                // Détecter le contexte pour la 3ème personne
-let context = 'simple';
-if ((person === 'il' || person === 'elle') && tense === 'présent') {
-    context = detectRelativeContext(words, i);
-        }
-                
-                const ngForm = conjugateNG(verbData, person, tense, context);
-                result.push(ngForm);
-                analysis.push({ 
-                    original: word, 
-                    translation: ngForm, 
-                    type: `verbe (${subject}, ${tense}, ${context})` 
-                });
-                found = true;
-                break;
+        const conjugated = conjugateFrench(frVerb, subject, tense);
+        if (conjugated === word) {
+            // Détecter le contexte pour la 3ème personne
+            let context = 'simple';
+            if ((subject === 'il' || subject === 'elle') && tense === 'présent') {
+                context = detectRelativeContext(words, i);
             }
+            
+            const ngForm = conjugateNG(verbData, subject, tense, context);
+            result.push(ngForm);
+            analysis.push({ 
+                original: word, 
+                translation: ngForm, 
+                type: `verbe (${subject}, ${tense}, ${context})` 
+            });
+            found = true;
+            break;
+        }
+    }
+    if (found) break;
+}
         }
         if (found) break;
     }
