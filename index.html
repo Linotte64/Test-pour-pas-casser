@@ -263,19 +263,24 @@ console.log("Script démarré");
             return radical + ending;
         }
         
-        function conjugateNG(verbData, person, tense = 'présent', context = 'simple') {
+       function conjugateNG(verbData, person, tense = 'présent', context = 'simple') {
+    console.log(`conjugateNG appelé avec: person=${person}, tense=${tense}, context=${context}`);
+    
     if ((person === 'il' || person === 'elle') && tense === 'présent') {
-        // NOUVELLE LOGIQUE : différencier simple vs relative
+        console.log("Condition 3ème personne présent remplie");
         if (context === 'relative') {
+            console.log(`Retour infinitif: ${verbData.ng_inf}`);
             return verbData.ng_inf; // Infinitif pour les relatives (addan)
         } else {
+            console.log(`Retour radical: ${verbData.ng_radical}`);
             return verbData.ng_radical; // Radical pour les phrases simples (add)
         }
     }
     
     const ending = ngConjugations[tense]?.[person] || '';
+    console.log(`Retour conjugué: ${verbData.ng_radical + ending}`);
     return verbData.ng_radical + ending;
-        }
+}
             
             function detectRelativeContext(words, verbIndex) {
     console.log(`Détection relative pour verbe à l'index ${verbIndex}`, words);
