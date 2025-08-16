@@ -1174,9 +1174,9 @@ for (const [frVerb, verbData] of Object.entries(dict.verbs)) {
                     for (const [frVerb, verbData] of Object.entries(dict.verbs)) {
                         for (const tense of ['présent', 'imparfait', 'futur']) {
                             for (const person of ['je', 'tu', 'il', 'elle', 'nous', 'vous', 'ils', 'elles']) {
-                               const ngForm = conjugateNG(verbData, person, tense, context);
+                               const ngForm = conjugateNG(verbData, person, tense, 'simple');
                                 if (ngForm === word) {
-                                    const frForm = conjugateFrench(frVerb, subject, tense);
+                                    const frForm = conjugateFrench(frVerb, person, tense);
                                     result.push(frForm);
                                     analysis.push({ 
                                         original: word, 
