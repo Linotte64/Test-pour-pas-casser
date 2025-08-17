@@ -332,7 +332,7 @@ console.log("Script démarré");
     return 'simple';
 }
         
-        function detectSubject(words) {
+         function detectSubject(words) {
     // Chercher d'abord les pronoms nilfgaardiens
     for (const [frPronoun, pronounData] of Object.entries(dict.pronouns)) {
         if (words.includes(pronounData.ng)) {
@@ -348,7 +348,26 @@ console.log("Script démarré");
         }
     }
     
-    // Chercher un nom pour déterminer le genre
+    // Détecter les noms au pluriel (avec articles pluriels)
+    for (let i = 0; i < words.length - 1; i++) {
+        const currentWord = words[i].toLowerCase();
+        const nextWord = words[i + 1].toLowerCase();
+        
+        // Vérifier si on a un article pluriel suivi d'un nom
+        if (['les', 'des'].includes(currentWord)) {
+            // Vérifier si le mot suivant est un nom au pluriel
+            const pluralCheck = detectFrenchPlural(nextWord);
+            if (pluralCheck.isPlural && dict.nouns[pluralCheck.singular]) {
+                return 'ils'; // Pluriel par défaut masculin
+            }
+            // Ou si c'est directement un nom connu au singulier mais utilisé au pluriel
+            if (dict.nouns[nextWord]) {
+                return 'ils'; // "les chat" -> "ils" (même si incorrect grammaticalement)
+            }
+        }
+    }
+    
+    // Chercher un nom pour déterminer le genre (singulier)
     for (const word of words) {
         const noun = dict.nouns[word.toLowerCase()];
         if (noun) {
