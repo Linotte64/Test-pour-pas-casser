@@ -288,51 +288,64 @@ console.log("Script démarré");
     // Chercher "qui" ou "[qui]" juste avant le verbe
     if (verbIndex > 0) {
         const previousWord = words[verbIndex - 1];
-      if (previousWord === 'qui' || previousWord.includes('ignoré pour relative')) {
+        if (previousWord === 'qui' || previousWord.includes('ignoré pour relative')) {
             console.log("Trouvé 'qui' avant le verbe");
             
             // Vérifier qu'il y a un nom/groupe nominal avant "qui"
             for (let i = verbIndex - 2; i >= 0; i--) {
                 const word = words[i].toLowerCase();
-            console.log(`Analyse du mot "${word}" à l'index ${i}`);
-            
-            // Si on trouve un nom simple
-            if (dict.nouns[word]) {
-                console.log(`Nom trouvé: ${word}`);
-                return 'relative';
-            }
-            
-            // Vérifier les expressions de 2 mots
-            if (i > 0) {
-                const expression = `${words[i-1]} ${word}`;
-                console.log(`Test expression: "${expression}"`);
-                if (dict.expressions[expression]) {
-                    console.log(`Expression trouvée: ${expression}`);
+                console.log(`Analyse du mot "${word}" à l'index ${i}`);
+                
+                // NOUVEAU : Détecter pluriel avec articles pluriels
+                if (['les', 'des'].includes(word)) {
+                    console.log(`Article pluriel trouvé: ${word}`);
+                    return 'relative_plural';
+                }
+                
+                // Si on trouve un nom simple
+                if (dict.nouns[word]) {
+                    console.log(`Nom singulier trouvé: ${word}`);
                     return 'relative';
                 }
+                
+                // NOUVEAU : Vérifier si c'est un pluriel français
+                const pluralCheck = detectFrenchPlural(word);
+                if (pluralCheck.isPlural && dict.nouns[pluralCheck.singular]) {
+                    console.log(`Nom pluriel trouvé: ${word}`);
+                    return 'relative_plural';
+                }
+                
+                // Vérifier les expressions de 2 mots
+                if (i > 0) {
+                    const expression = `${words[i-1]} ${word}`;
+                    console.log(`Test expression: "${expression}"`);
+                    if (dict.expressions[expression]) {
+                        console.log(`Expression trouvée: ${expression}`);
+                        return 'relative';
+                    }
+                }
+                
+                // Test si c'est un adjectif
+                const adjResult = getSingularAdjective(word);
+                console.log(`Test adjectif "${word}":`, adjResult);
+                
+                // MODIFIÉ : Ignorer seulement les articles singuliers
+                if (['le', 'la', 'un', 'une'].includes(word) ||
+                    dict.adjectives[word] ||
+                    adjResult.found) {
+                    console.log(`Mot ignoré: ${word}`);
+                    continue;
+                }
+                
+                console.log(`Arrêt sur: ${word}`);
+                break;
             }
-            
-            // Test si c'est un adjectif
-            const adjResult = getSingularAdjective(word);
-            console.log(`Test adjectif "${word}":`, adjResult);
-            
-            // Ignorer les articles/adjectifs, continuer la recherche
-            if (['le', 'la', 'les', 'un', 'une', 'des'].includes(word) ||
-                dict.adjectives[word] ||
-                adjResult.found) {
-                console.log(`Mot ignoré: ${word}`);
-                continue;
-            }
-            
-            console.log(`Arrêt sur: ${word}`);
-            break;
-        }
         }
     }
     return 'simple';
 }
         
-           function detectSubject(words) {
+          function detectSubject(words) {
     // Chercher d'abord les pronoms nilfgaardiens
     for (const [frPronoun, pronounData] of Object.entries(dict.pronouns)) {
         if (words.includes(pronounData.ng)) {
