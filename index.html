@@ -295,7 +295,7 @@ console.log("Script démarré");
     return verbData.ng_radical + ending;
 }
             
-            function detectRelativeContext(words, verbIndex) {
+           function detectRelativeContext(words, verbIndex) {
     console.log(`Détection relative pour verbe à l'index ${verbIndex}`, words);
     
     // Chercher "qui" ou "[qui]" juste avant le verbe
@@ -309,9 +309,16 @@ console.log("Script démarré");
                 const word = words[i].toLowerCase();
                 console.log(`Analyse du mot "${word}" à l'index ${i}`);
                 
-                // NOUVEAU : Détecter pluriel avec articles pluriels
+                // Détecter pluriel avec articles pluriels
                 if (['les', 'des'].includes(word)) {
                     console.log(`Article pluriel trouvé: ${word}`);
+                    return 'relative_plural';
+                }
+                
+                // Vérifier si c'est un pluriel français AVANT de chercher le singulier
+                const pluralCheck = detectFrenchPlural(word);
+                if (pluralCheck.isPlural && dict.nouns[pluralCheck.singular]) {
+                    console.log(`Nom pluriel trouvé: ${word} -> ${pluralCheck.singular}`);
                     return 'relative_plural';
                 }
                 
@@ -319,13 +326,6 @@ console.log("Script démarré");
                 if (dict.nouns[word]) {
                     console.log(`Nom singulier trouvé: ${word}`);
                     return 'relative';
-                }
-                
-                // NOUVEAU : Vérifier si c'est un pluriel français
-                const pluralCheck = detectFrenchPlural(word);
-                if (pluralCheck.isPlural && dict.nouns[pluralCheck.singular]) {
-                    console.log(`Nom pluriel trouvé: ${word}`);
-                    return 'relative_plural';
                 }
                 
                 // Vérifier les expressions de 2 mots
@@ -342,7 +342,7 @@ console.log("Script démarré");
                 const adjResult = getSingularAdjective(word);
                 console.log(`Test adjectif "${word}":`, adjResult);
                 
-                // MODIFIÉ : Ignorer seulement les articles singuliers
+                // Ignorer les articles/adjectifs singuliers, continuer la recherche
                 if (['le', 'la', 'un', 'une'].includes(word) ||
                     dict.adjectives[word] ||
                     adjResult.found) {
