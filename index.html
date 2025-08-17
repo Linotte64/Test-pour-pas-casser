@@ -263,20 +263,33 @@ console.log("Script démarré");
             return radical + ending;
         }
         
-       function conjugateNG(verbData, person, tense = 'présent', context = 'simple') {
+      function conjugateNG(verbData, person, tense = 'présent', context = 'simple') {
     console.log(`conjugateNG appelé avec: person=${person}, tense=${tense}, context=${context}`);
     
-    if ((person === 'il' || person === 'elle') && tense === 'présent') {
-        console.log("Condition 3ème personne présent remplie");
-        if (context === 'relative') {
-            console.log(`Retour infinitif: ${verbData.ng_inf}`);
-            return verbData.ng_inf; // Infinitif pour les relatives (addan)
-        } else {
-            console.log(`Retour radical: ${verbData.ng_radical}`);
-            return verbData.ng_radical; // Radical pour les phrases simples (add)
+    if (tense === 'présent') {
+        // 3ème personne singulier
+        if (person === 'il' || person === 'elle') {
+            if (context === 'relative') {
+                console.log(`Retour infinitif singulier: ${verbData.ng_inf}`);
+                return verbData.ng_inf; // Infinitif pour les relatives singulier (addan)
+            } else {
+                console.log(`Retour radical singulier: ${verbData.ng_radical}`);
+                return verbData.ng_radical; // Radical pour les phrases simples (add)
+            }
+        }
+        // 3ème personne pluriel
+        else if (person === 'ils' || person === 'elles') {
+            if (context === 'relative_plural' || context === 'relative') {
+                console.log(`Retour radical + arin: ${verbData.ng_radical}arin`);
+                return verbData.ng_radical + 'arin'; // Radical + arin pour les relatives pluriel (addarin)
+            } else {
+                console.log(`Retour radical + in: ${verbData.ng_radical}in`);
+                return verbData.ng_radical + 'in'; // Radical + in pour les phrases simples (addin)
+            }
         }
     }
     
+    // Conjugaison normale pour les autres cas
     const ending = ngConjugations[tense]?.[person] || '';
     console.log(`Retour conjugué: ${verbData.ng_radical + ending}`);
     return verbData.ng_radical + ending;
