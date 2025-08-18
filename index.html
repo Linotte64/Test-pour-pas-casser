@@ -951,9 +951,9 @@ for (const [frVerb, verbData] of Object.entries(dict.verbs)) {
         if (conjugated === word) {
             // Détecter le contexte pour la 3ème personne
             let context = 'simple';
-            if ((subject === 'il' || subject === 'elle') && tense === 'présent') {
-                context = detectRelativeContext(words, i);
-            }
+            if (['il', 'elle', 'ils', 'elles'].includes(subject) && tense === 'présent') {
+    context = detectRelativeContext(words, i);
+}
             
             const ngForm = conjugateNG(verbData, subject, tense, context);
             result.push(ngForm);
