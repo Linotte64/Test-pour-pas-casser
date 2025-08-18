@@ -295,9 +295,12 @@ console.log("Script démarré");
     return verbData.ng_radical + ending;
 }
             
-           function detectRelativeContext(words, verbIndex) {
-    console.log(`Détection relative pour verbe à l'index ${verbIndex}`, words);
-    
+         function detectRelativeContext(words, verbIndex) {
+    console.log(`=== DÉBUT detectRelativeContext ===`);
+    console.log(`Mots: ${words.join(' ')}`);
+    console.log(`Index du verbe: ${verbIndex}`);
+    console.log(`Mot précédent: ${words[verbIndex - 1]}`);
+             
     // Chercher "qui" ou "[qui]" juste avant le verbe
     if (verbIndex > 0) {
         const previousWord = words[verbIndex - 1];
