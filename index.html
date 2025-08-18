@@ -295,69 +295,51 @@ console.log("Script démarré");
     return verbData.ng_radical + ending;
 }
             
-         function detectRelativeContext(words, verbIndex) {
+function detectRelativeContext(words, verbIndex) {
     console.log(`=== DÉBUT detectRelativeContext ===`);
     console.log(`Mots: ${words.join(' ')}`);
     console.log(`Index du verbe: ${verbIndex}`);
-    console.log(`Mot précédent: ${words[verbIndex - 1]}`);
-             
+    
+    if (verbIndex > 0) {
+        console.log(`Mot précédent: ${words[verbIndex - 1]}`);
+    }
+    
     // Chercher "qui" ou "[qui]" juste avant le verbe
     if (verbIndex > 0) {
         const previousWord = words[verbIndex - 1];
         if (previousWord === 'qui' || previousWord.includes('ignoré pour relative')) {
-            console.log("Trouvé 'qui' avant le verbe");
+            console.log("✓ Trouvé 'qui' avant le verbe");
             
             // Vérifier qu'il y a un nom/groupe nominal avant "qui"
             for (let i = verbIndex - 2; i >= 0; i--) {
                 const word = words[i].toLowerCase();
-                console.log(`Analyse du mot "${word}" à l'index ${i}`);
+                console.log(`=== Analyse mot "${word}" à l'index ${i} ===`);
                 
-                // Détecter pluriel avec articles pluriels
-                if (['les', 'des'].includes(word)) {
-                    console.log(`Article pluriel trouvé: ${word}`);
-                    return 'relative_plural';
-                }
-                
-                // Vérifier si c'est un pluriel français AVANT de chercher le singulier
+                // Vérifier si c'est un pluriel français
                 const pluralCheck = detectFrenchPlural(word);
+                console.log(`Pluriel check pour "${word}":`, pluralCheck);
+                
                 if (pluralCheck.isPlural && dict.nouns[pluralCheck.singular]) {
-                    console.log(`Nom pluriel trouvé: ${word} -> ${pluralCheck.singular}`);
+                    console.log(`🎯 TROUVÉ! Nom pluriel: ${word} -> ${pluralCheck.singular}`);
+                    console.log(`=== RETOUR: relative_plural ===`);
                     return 'relative_plural';
                 }
                 
                 // Si on trouve un nom simple
                 if (dict.nouns[word]) {
-                    console.log(`Nom singulier trouvé: ${word}`);
+                    console.log(`🎯 TROUVÉ! Nom singulier: ${word}`);
+                    console.log(`=== RETOUR: relative ===`);
                     return 'relative';
                 }
                 
-                // Vérifier les expressions de 2 mots
-                if (i > 0) {
-                    const expression = `${words[i-1]} ${word}`;
-                    console.log(`Test expression: "${expression}"`);
-                    if (dict.expressions[expression]) {
-                        console.log(`Expression trouvée: ${expression}`);
-                        return 'relative';
-                    }
-                }
-                
-                // Test si c'est un adjectif
-                const adjResult = getSingularAdjective(word);
-                console.log(`Test adjectif "${word}":`, adjResult);
-                
-                // Ignorer les articles/adjectifs singuliers, continuer la recherche
-                if (['le', 'la', 'un', 'une'].includes(word) ||
-                    dict.adjectives[word] ||
-                    adjResult.found) {
-                    console.log(`Mot ignoré: ${word}`);
-                    continue;
-                }
-                
-                console.log(`Arrêt sur: ${word}`);
-                break;
+                console.log(`Mot "${word}" ignoré, continue...`);
             }
+        } else {
+            console.log(`❌ Pas de 'qui' trouvé, mot précédent: "${previousWord}"`);
         }
     }
+    
+    console.log(`=== RETOUR: simple ===`);
     return 'simple';
 }
         
