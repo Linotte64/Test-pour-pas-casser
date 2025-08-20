@@ -1353,6 +1353,7 @@ let finalTranslation = result.join(' ');
 finalTranslation = finalTranslation.replace(/\\[\\|EXPR:([^\\]]+)\\]/g, '$1');
 finalTranslation = finalTranslation.replace(/\\[([^\\]]+)\\|\\]/g, '$1');
 finalTranslation = finalTranslation.replace(/\\|EXPR:([^|]+)\\|/g, '$1');
+                
 
 return {
     translation: postprocessFrenchText(finalTranslation),
