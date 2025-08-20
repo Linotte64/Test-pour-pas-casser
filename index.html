@@ -1098,11 +1098,10 @@ for (const [frVerb, verbData] of Object.entries(dict.verbs)) {
             let textToProcess = text.toLowerCase();
             let expressionAnalysis = [];
 
-            for (const [frExpr, ngData] of Object.entries(dict.expressions)) {
-    const regex = new RegExp('\\\\b' + ngData.ng.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&') + '\\\\b', 'g');
+         for (const [frExpr, ngData] of Object.entries(dict.expressions)) {
+    const regex = new RegExp('\\b' + ngData.ng.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'g');
     if (regex.test(textToProcess)) {
-        const exprWithUnderscores = frExpr.replace(/ /g, '_'); // Remplacer espaces par _
-        textToProcess = textToProcess.replace(regex, `|EXPR:${exprWithUnderscores}|`);
+        textToProcess = textToProcess.replace(regex, `|EXPR:${frExpr}|`); // SANS underscores
         expressionAnalysis.push({ original: ngData.ng, translation: frExpr, type: 'expression' });
     }
 }
