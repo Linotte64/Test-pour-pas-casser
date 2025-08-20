@@ -1099,12 +1099,13 @@ for (const [frVerb, verbData] of Object.entries(dict.verbs)) {
             let expressionAnalysis = [];
 
             for (const [frExpr, ngData] of Object.entries(dict.expressions)) {
-                const regex = new RegExp('\\b' + ngData.ng.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'g');
-                if (regex.test(textToProcess)) {
-                    textToProcess = textToProcess.replace(regex, `|EXPR:${frExpr}|`);
-                    expressionAnalysis.push({ original: ngData.ng, translation: frExpr, type: 'expression' });
-                }
-            }
+    const regex = new RegExp('\\\\b' + ngData.ng.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&') + '\\\\b', 'g');
+    if (regex.test(textToProcess)) {
+        const exprWithUnderscores = frExpr.replace(/ /g, '_'); // Remplacer espaces par _
+        textToProcess = textToProcess.replace(regex, `|EXPR:${exprWithUnderscores}|`);
+        expressionAnalysis.push({ original: ngData.ng, translation: frExpr, type: 'expression' });
+    }
+}
 
             const words = textToProcess.split(' ');
             const subject = detectSubject(text.toLowerCase().split(' '));
@@ -1350,7 +1351,9 @@ for (const [frAdj, ngAdj] of Object.entries(dict.adjectives)) {
             
 // Nettoyer les expressions
 let finalText = result.join(' ');
-finalText = finalText.replace(/\\|EXPR:([^|]+)\\|/g, '$1');
+finalText = finalText.replace(/\\|EXPR:([^|]+)\\|/g, function(match, expr) {
+    return expr.replace(/_/g, ' '); // Remettre les espaces
+});
 
 return {
     translation: postprocessFrenchText(finalText),
