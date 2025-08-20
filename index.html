@@ -312,6 +312,21 @@ function detectRelativeContext(words, verbIndex) {
                 const word = words[i].toLowerCase();
                 console.log(`Analyse du mot "${word}" à l'index ${i}`);
                 
+                // NOUVEAU : Détecter les expressions remplacées
+                if (word.startsWith('|expr:') && word.endsWith('|')) {
+                    const exprNg = word.slice(6, -1); // Enlever |expr: et |
+                    console.log(`Expression trouvée: ${exprNg}`);
+                    
+                    // Chercher l'expression dans le dictionnaire
+                    for (const [frExpr, exprData] of Object.entries(dict.expressions)) {
+                        if (exprData.ng === exprNg) {
+                            console.log(`Expression identifiée: ${frExpr}`);
+                            // Utiliser le genre de l'expression (toujours singulier pour l'instant)
+                            return 'relative';
+                        }
+                    }
+                }
+                
                 // Détecter pluriel avec articles pluriels
                 if (['les', 'des'].includes(word)) {
                     console.log(`Article pluriel trouvé: ${word}`);
