@@ -1352,7 +1352,11 @@ for (const [frAdj, ngAdj] of Object.entries(dict.adjectives)) {
 // Nettoyer les expressions
 let finalText = result.join(' ');
 finalText = finalText.replace(/\\|EXPR:([^|]+)\\|/g, function(match, expr) {
-    return expr.replace(/_/g, ' '); // Remettre les espaces
+   if (expr) {
+    return expr.replace(/_/g, ' ');
+} else {
+    return match; // Garder tel quel si problème
+}
 });
 
 return {
