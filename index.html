@@ -906,7 +906,7 @@ function findVerbFromParticiple(participle) {
             for (const [expr, data] of Object.entries(dict.expressions)) {
                 const regex = new RegExp('\\b' + expr.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'g');
                 if (regex.test(textToProcess)) {
-                    textToProcess = textToProcess.replace(regex, `__EXPR__${frExpr.replace(/ /g, '_')}__`);
+                    textToProcess = textToProcess.replace(regex, `|EXPR:${data.ng}|`);
                     expressionAnalysis.push({ original: expr, translation: data.ng, type: 'expression' });
                 }
             }
@@ -1116,11 +1116,10 @@ for (const [frVerb, verbData] of Object.entries(dict.verbs)) {
                 let found = false;
                 
                 // Vérifier si c'est une expression remplacée
-if (word.startsWith('__EXPR__') && word.endsWith('__')) {
-    const expr = word.slice(8, -2).replace(/_/g, ' '); // Enlever __EXPR__ et __
-    result.push(expr);
-    found = true;
-}
+                if (word.startsWith('|EXPR:') && word.endsWith('|')) {
+                    result.push(word.slice(6, -1));
+                    found = true;
+                }
                 
                 if (!found) {
                     // FUTUR PROCHE (voor + infinitif → aller + infinitif)
@@ -1351,8 +1350,12 @@ for (const [frAdj, ngAdj] of Object.entries(dict.adjectives)) {
             
 // Nettoyer les expressions
 let finalText = result.join(' ');
-finalText = finalText.replace(/__EXPR__([^_]+(?:_[^_]+)*)__/g, function(match, expr) {
+finalText = finalText.replace(/\\|EXPR:([^|]+)\\|/g, function(match, expr) {
+   if (expr) {
     return expr.replace(/_/g, ' ');
+} else {
+    return match; // Garder tel quel si problème
+}
 });
 
 return {
