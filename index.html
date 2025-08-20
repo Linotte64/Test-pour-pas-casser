@@ -1350,7 +1350,7 @@ for (const [frAdj, ngAdj] of Object.entries(dict.adjectives)) {
             
                 
 return {
-    translation: postprocessFrenchText(finalTranslation),
+    translation: postprocessFrenchText(result.join(' ')),
     analysis: analysis,
     grammar: [`Sujet: ${subject}`]
 };
