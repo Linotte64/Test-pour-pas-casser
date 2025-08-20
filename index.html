@@ -1386,8 +1386,17 @@ for (const [frAdj, ngAdj] of Object.entries(dict.adjectives)) {
     processedText = processedText.replace(/\bce est\b/g, "c'est");
     processedText = processedText.replace(/\bce était\b/g, "c'était");
     
-    return processedText;
-        }
+   // Nettoyer les balises d'expressions mal traitées
+let finalTranslation = result.join(' ');
+finalTranslation = finalTranslation.replace(/\\[\\|EXPR:([^\\]]+)\\]/g, '$1');
+finalTranslation = finalTranslation.replace(/\\[([^\\]]+)\\|\\]/g, '$1');
+finalTranslation = finalTranslation.replace(/\\|EXPR:([^|]+)\\|/g, '$1');
+
+return {
+    translation: postprocessFrenchText(finalTranslation),
+    analysis: analysis,
+    grammar: [`Sujet: ${subject}`]
+};
         
         
         // INTERFACE
