@@ -1348,9 +1348,12 @@ for (const [frAdj, ngAdj] of Object.entries(dict.adjectives)) {
                 }
             }
             
-                
+// Nettoyer les expressions
+let finalText = result.join(' ');
+finalText = finalText.replace(/\\|EXPR:([^|]+)\\|/g, '$1');
+
 return {
-    translation: postprocessFrenchText(result.join(' ')),
+    translation: postprocessFrenchText(finalText),
     analysis: analysis,
     grammar: [`Sujet: ${subject}`]
 };
