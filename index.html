@@ -1348,18 +1348,12 @@ for (const [frAdj, ngAdj] of Object.entries(dict.adjectives)) {
                 }
             }
             
-// Nettoyer les expressions
-let finalText = result.join(' ');
-finalText = finalText.replace(/\\|EXPR:([^|]+)\\|/g, function(match, expr) {
-   if (expr) {
-    return expr.replace(/_/g, ' ');
-} else {
-    return match; // Garder tel quel si problème
-}
-});
+// Nettoyer l'affichage des expressions
+let cleanResult = result.join(' ');
+cleanResult = cleanResult.replace(/\|EXPR:([^|]+)\|/g, '$1');
 
 return {
-    translation: postprocessFrenchText(finalText),
+    translation: postprocessFrenchText(cleanResult),
     analysis: analysis,
     grammar: [`Sujet: ${subject}`]
 };
