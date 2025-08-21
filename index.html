@@ -1348,12 +1348,18 @@ for (const [frAdj, ngAdj] of Object.entries(dict.adjectives)) {
                         }
                     }
                     
-                    if (!found) {
-                        result.push(`[${word}]`);
-                        analysis.push({ original: word, translation: '[inconnu]', type: 'inconnu' });
-                    }
+                   if (!found) {
+    result.push(`[${word}]`);
+    analysis.push({ original: word, translation: '[inconnu]', type: 'inconnu' });
+}
                 }
             }
+            
+            return {
+                translation: postprocessFrenchText(result.join(' ')),
+                analysis: analysis,
+                grammar: [`Sujet: ${subject}`]
+            };
         }
         function postprocessFrenchText(text) {
     // Reconstituer les apostrophes
