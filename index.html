@@ -1103,10 +1103,11 @@ if (word.includes('|EXPR:') || word.includes('|')) {
             let textToProcess = text.toLowerCase();
             let expressionAnalysis = [];
 
-         for (const [frExpr, ngData] of Object.entries(dict.expressions)) {
+        for (const [frExpr, ngData] of Object.entries(dict.expressions)) {
     const regex = new RegExp('\\b' + ngData.ng.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'g');
     if (regex.test(textToProcess)) {
-        textToProcess = textToProcess.replace(regex, `|EXPR:${frExpr}|`); // SANS underscores
+        const exprWithUnderscore = frExpr.replace(/ /g, '_'); // flamme_blanche
+        textToProcess = textToProcess.replace(regex, `|EXPR:${exprWithUnderscore}|`);
         expressionAnalysis.push({ original: ngData.ng, translation: frExpr, type: 'expression' });
     }
 }
@@ -1120,15 +1121,10 @@ if (word.includes('|EXPR:') || word.includes('|')) {
                 let word = words[i];
                 let found = false;
                 
-                // Vérifier si c'est une expression remplacée
-                if (word.startsWith('|EXPR:') && word.endsWith('|')) {
-    const expression = word.slice(6, -1); // "flamme blanche"
-    const words = expression.split(' '); // ["flamme", "blanche"]
-    
-    // Ajouter chaque mot de l'expression
-    for (const exprWord of words) {
-        result.push(exprWord);
-    }
+              // Vérifier si c'est une expression remplacée
+if (word.startsWith('|EXPR:') && word.endsWith('|')) {
+    const expression = word.slice(6, -1).replace(/_/g, ' '); // Remettre les espaces
+    result.push(expression);
     found = true;
 }
                 
