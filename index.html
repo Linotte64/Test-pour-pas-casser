@@ -1375,7 +1375,9 @@ while (i < result.length) {
         }
         // Nettoyer l'expression
         expression = expression.replace(/\|EXPR:([^|]+)\|/g, '$1');
-        finalResult.push(expression);
+       // Séparer l'expression en mots individuels 
+const words = expression.split(' ');
+finalResult.push(...words);
     } else {
         finalResult.push(word);
     }
