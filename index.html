@@ -1080,7 +1080,11 @@ for (const [frVerb, verbData] of Object.entries(dict.verbs)) {
         }
     }
 }
-                    
+ // Reconnaître les morceaux d'expressions
+if (word.includes('|EXPR:') || word.includes('|')) {
+    result.push(word); // Ajouter tel quel sans crochets
+    found = true;
+}                   
                     if (!found) {
                         result.push(`[${word}]`);
                         analysis.push({ original: word, translation: '[inconnu]', type: 'inconnu' });
