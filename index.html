@@ -1359,35 +1359,6 @@ for (const [frAdj, ngAdj] of Object.entries(dict.adjectives)) {
                 }
             }
             
-          // Nettoyer l'affichage en recollant les expressions
-let finalResult = [];
-let i = 0;
-while (i < result.length) {
-    let word = result[i];
-    
-    // Si on trouve le début d'une expression cassée
-    if (word.includes('|EXPR:')) {
-        let expression = word;
-        // Chercher la fin de l'expression
-        while (!expression.includes('|') || !expression.endsWith('|')) {
-            i++;
-            if (i < result.length) {
-                expression += ' ' + result[i];
-            } else {
-                break;
-            }
-        }
-        // Nettoyer l'expression
-        expression = expression.replace(/\|EXPR:([^|]+)\|/g, '$1');
-       // Séparer l'expression en mots individuels 
-const words = expression.split(' ');
-finalResult.push(...words);
-    } else {
-        finalResult.push(word);
-    }
-    i++;
-}
-
 return {
     translation: postprocessFrenchText(finalResult.join(' ')),
     analysis: analysis,
