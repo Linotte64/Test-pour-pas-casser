@@ -1354,16 +1354,6 @@ for (const [frAdj, ngAdj] of Object.entries(dict.adjectives)) {
                     }
                 }
             }
-            
-// Nettoyer l'affichage des expressions
-let cleanResult = result.join(' ');
-cleanResult = cleanResult.replace(/\|EXPR:([^|]+)\|/g, '$1');
-
-return {
-    translation: postprocessFrenchText(cleanResult),
-    analysis: analysis,
-    grammar: [`Sujet: ${subject}`]
-};
         }
         function postprocessFrenchText(text) {
     // Reconstituer les apostrophes
