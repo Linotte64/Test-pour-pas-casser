@@ -1355,11 +1355,38 @@ for (const [frAdj, ngAdj] of Object.entries(dict.adjectives)) {
                 }
             }
             
-            return {
-                translation: postprocessFrenchText(result.join(' ')),
-                analysis: analysis,
-                grammar: [`Sujet: ${subject}`]
-            };
+          // Nettoyer l'affichage en recollant les expressions
+let finalResult = [];
+let i = 0;
+while (i < result.length) {
+    let word = result[i];
+    
+    // Si on trouve le début d'une expression cassée
+    if (word.includes('|EXPR:')) {
+        let expression = word;
+        // Chercher la fin de l'expression
+        while (!expression.includes('|') || !expression.endsWith('|')) {
+            i++;
+            if (i < result.length) {
+                expression += ' ' + result[i];
+            } else {
+                break;
+            }
+        }
+        // Nettoyer l'expression
+        expression = expression.replace(/\|EXPR:([^|]+)\|/g, '$1');
+        finalResult.push(expression);
+    } else {
+        finalResult.push(word);
+    }
+    i++;
+}
+
+return {
+    translation: postprocessFrenchText(finalResult.join(' ')),
+    analysis: analysis,
+    grammar: [`Sujet: ${subject}`]
+};
         }
         function postprocessFrenchText(text) {
     // Reconstituer les apostrophes
