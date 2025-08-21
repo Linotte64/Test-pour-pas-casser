@@ -1118,9 +1118,15 @@ for (const [frVerb, verbData] of Object.entries(dict.verbs)) {
                 
                 // Vérifier si c'est une expression remplacée
                 if (word.startsWith('|EXPR:') && word.endsWith('|')) {
-                    result.push(word.slice(6, -1));
-                    found = true;
-                }
+    const expression = word.slice(6, -1); // "flamme blanche"
+    const words = expression.split(' '); // ["flamme", "blanche"]
+    
+    // Ajouter chaque mot de l'expression
+    for (const exprWord of words) {
+        result.push(exprWord);
+    }
+    found = true;
+}
                 
                 if (!found) {
                     // FUTUR PROCHE (voor + infinitif → aller + infinitif)
