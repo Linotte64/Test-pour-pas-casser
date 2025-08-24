@@ -988,6 +988,59 @@ if (['aurai', 'auras', 'aura', 'aurons', 'aurez', 'auront'].includes(word) && i 
         continue;
     }
 }
+                       // --- FR → NG : Auxiliaire ÊTRE + participe passé ---
+if (!found && i + 1 < words.length) {
+  const nextWord = words[i + 1];
+
+  // Trouver le verbe FR à partir du participe passé FR
+  const frPPToVerb = (pp) => {
+    for (const [frVerb, vData] of Object.entries(dict.verbs)) {
+      if (vData.fr_participle === pp) return vData;
+    }
+    return null;
+  };
+
+  const persons = ['je','tu','il','elle','nous','vous','ils','elles'];
+  const tenses  = ['présent','imparfait','futur']; // passé comp. / PQP / futur ant.
+  let matched = false;
+
+  for (const tense of tenses) {
+    if (matched) break;
+    for (const person of persons) {
+      const frAux = conjugateFrench('être', person, tense);
+      if (frAux === word) {
+        const vData = frPPToVerb(nextWord);
+        if (vData) {
+          const ngPP = vData.ng_radical + 'at';
+
+          if (tense === 'futur') {
+            // ⚔️ FUTUR ANTÉRIEUR avec être → même traitement que "avoir"
+            result.push(`vaen ${ngPP}`);
+            analysis.push({
+              original: `${word} ${nextWord}`,
+              translation: `vaen ${ngPP}`,
+              type: 'futur antérieur (être)'
+            });
+          } else {
+            // Passé composé / Plus-que-parfait → être conjugué + PP
+            const ngAux = conjugateNG(dict.verbs['être'], person, tense, 'simple');
+            result.push(`${ngAux} ${ngPP}`);
+            analysis.push({
+              original: `${word} ${nextWord}`,
+              translation: `${ngAux} ${ngPP}`,
+              type: `temps composé avec être (${tense})`
+            });
+          }
+
+          i++;
+          found = true;
+          matched = true;
+          break;
+        }
+      }
+    }
+  }
+}
                     
                     // GESTION "DE + POSSESSIF" → "AEP"
                     if (word === 'de' && i + 1 < words.length) {
@@ -1267,59 +1320,6 @@ if (word.startsWith('vaen') && i + 1 < words.length) {
     }
 }
 
-                 // --- FR → NG : Auxiliaire ÊTRE + participe passé ---
-if (!found && i + 1 < words.length) {
-  const nextWord = words[i + 1];
-
-  // Trouver le verbe FR à partir du participe passé FR
-  const frPPToVerb = (pp) => {
-    for (const [frVerb, vData] of Object.entries(dict.verbs)) {
-      if (vData.fr_participle === pp) return vData;
-    }
-    return null;
-  };
-
-  const persons = ['je','tu','il','elle','nous','vous','ils','elles'];
-  const tenses  = ['présent','imparfait','futur']; // passé comp. / PQP / futur ant.
-  let matched = false;
-
-  for (const tense of tenses) {
-    if (matched) break;
-    for (const person of persons) {
-      const frAux = conjugateFrench('être', person, tense);
-      if (frAux === word) {
-        const vData = frPPToVerb(nextWord);
-        if (vData) {
-          const ngPP = vData.ng_radical + 'at';
-
-          if (tense === 'futur') {
-            // ⚔️ FUTUR ANTÉRIEUR avec être → même traitement que "avoir"
-            result.push(`vaen ${ngPP}`);
-            analysis.push({
-              original: `${word} ${nextWord}`,
-              translation: `vaen ${ngPP}`,
-              type: 'futur antérieur (être)'
-            });
-          } else {
-            // Passé composé / Plus-que-parfait → être conjugué + PP
-            const ngAux = conjugateNG(dict.verbs['être'], person, tense, 'simple');
-            result.push(`${ngAux} ${ngPP}`);
-            analysis.push({
-              original: `${word} ${nextWord}`,
-              translation: `${ngAux} ${ngPP}`,
-              type: `temps composé avec être (${tense})`
-            });
-          }
-
-          i++;
-          found = true;
-          matched = true;
-          break;
-        }
-      }
-    }
-  }
-}
                     // --- NG → FR : Participe NG isolé (-at) → PP FR de base (sans auxiliaire) ---
 if (!found && word.endsWith('at')) {
   const ngRadical = word.slice(0, -2);
