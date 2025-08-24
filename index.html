@@ -1267,55 +1267,66 @@ if (word.startsWith('vaen') && i + 1 < words.length) {
     }
 }
 
-                    // --- NG → FR : Auxiliaire ÊTRE + participe passé (accord du PP) ---
-if (!found) {
-  // Si le mot suivant ressemble à un participe NG (radical + 'at')
-  if (i + 1 < words.length && words[i + 1].endsWith('at')) {
-    const ppToken = words[i + 1]; // ex. addat
-    let matched = false;
+                  // --- FR → NG : Auxiliaire ÊTRE + participe passé (futur ⇒ 'vaen', sinon être NG) ---
+if (!found && i + 1 < words.length) {
+  const nextWord = words[i + 1];
 
-    // On essaie de voir si le mot courant est une forme NG de "être"
-    const etreData = dict.verbs['être'];
-    const persons = ['je','tu','il','elle','nous','vous','ils','elles'];
-    const tenses = ['présent','imparfait','futur']; // donnera: passé composé / plus-que-parfait / futur antérieur
+  // Trouver le verbe FR à partir du participe passé FR
+  const frPPToVerb = (pp) => {
+    for (const [frVerb, vData] of Object.entries(dict.verbs)) {
+      if (vData.fr_participle === pp) return { frVerb, vData };
+    }
+    return null;
+  };
 
-    for (const tense of tenses) {
-      if (matched) break;
-      for (const person of persons) {
-        const ngAux = conjugateNG(etreData, person, tense, 'simple');
-        if (ngAux === word) {
-          // On mappe le participe NG (radical + 'at') vers le verbe FR
-          const ngRadical = ppToken.slice(0, -2); // "addat" -> "add"
-          let frVerb = null, vData = null;
+  const persons = ['je','tu','il','elle','nous','vous','ils','elles'];
+  const tenses  = ['présent','imparfait','futur']; // passé comp. / PQP / futur ant.
+  let matched = false;
 
-          for (const [fv, vd] of Object.entries(dict.verbs)) {
-            if (vd.ng_radical === ngRadical) { frVerb = fv; vData = vd; break; }
-          }
+  for (const tense of tenses) {
+    if (matched) break;
+    for (const person of persons) {
+      const frAux = conjugateFrench('être', person, tense);
+      if (frAux === word) {
+        const hit = frPPToVerb(nextWord);
+        if (!hit) break;
+        const { vData } = hit;
+        const ngPP = vData.ng_radical + 'at';
 
-          if (frVerb && vData) {
-            // Forme FR de l'auxiliaire "être" selon la personne et le temps détectés
-            const frAux = conjugateFrench('être', person, tense);
-
-            // Accord du participe passé avec le sujet (personne détectée)
-            const isPlural = (person === 'nous' || person === 'vous' || person === 'ils' || person === 'elles');
-            const gender   = (person === 'elle' || person === 'elles') ? 'f' : 'm';
-            const agreedPP = agreePastParticiple(vData.fr_participle, gender, isPlural);
-
-            // On sort le groupe verbal + on consomme le participe (i++)
-            result.push(`${frAux} ${agreedPP}`);
-            analysis.push({
-              original: `${word} ${ppToken}`,
-              translation: `${frAux} ${agreedPP}`,
-              type: `temps composé avec être (${tense})`
-            });
-
-            i++;          // on saute le token participe passé déjà traité
-            found = true; // on a géré ce morceau
-            matched = true;
-            break;
-          }
+        if (tense === 'futur') {
+          // 👉 FUTUR ANTÉRIEUR avec ÊTRE : on fait comme AVOIR en NG ⇒ 'vaen + PP_NG'
+          result.push(`vaen ${ngPP}`);
+          analysis.push({
+            original: `${word} ${nextWord}`,
+            translation: `vaen ${ngPP}`,
+            type: 'futur antérieur (être) → vaen + PP_NG'
+          });
+        } else {
+          // 👉 Passé composé / Plus-que-parfait : on garde être conjugué en NG
+          const ngAux = conjugateNG(dict.verbs['être'], person, tense, 'simple');
+          result.push(`${ngAux} ${ngPP}`);
+          analysis.push({
+            original: `${word} ${nextWord}`,
+            translation: `${ngAux} ${ngPP}`,
+            type: `temps composé avec être (${tense})`
+          });
         }
+
+        i++; found = true; matched = true;
+        break;
       }
+    }
+  }
+}
+                    // --- NG → FR : Participe NG isolé (-at) → PP FR de base (sans auxiliaire) ---
+if (!found && word.endsWith('at')) {
+  const ngRadical = word.slice(0, -2);
+  for (const [frVerb, vData] of Object.entries(dict.verbs)) {
+    if (vData.ng_radical === ngRadical) {
+      result.push(vData.fr_participle); // pas d'accord ici, PP isolé
+      analysis.push({ original: word, translation: vData.fr_participle, type: 'participe (isolé)' });
+      found = true;
+      break;
     }
   }
 }
