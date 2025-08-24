@@ -1119,11 +1119,30 @@ if (word.includes('|EXPR:') || word.includes('|')) {
                 let word = words[i];
                 let found = false;
                 
-              // Vérifier si c'est une expression remplacée
+             // Vérifier si c'est une expression remplacée
 if (word.startsWith('|EXPR:') && word.endsWith('|')) {
-    const expression = word.slice(6, -1).replace(/_/g, ' '); // Remettre les espaces
-    result.push(expression);
-    found = true;
+    const expression = word.slice(6, -1).replace(/_/g, ' '); // "flamme blanche"
+    
+    // Chercher les infos de genre dans le dictionnaire
+    for (const [frExpr, exprData] of Object.entries(dict.expressions)) {
+        if (frExpr === expression) {
+            const article = exprData.gender_fr === 'f' ? 'la ' : 'le ';
+            result.push(article + expression);
+            analysis.push({ 
+                original: word, 
+                translation: article + expression, 
+                type: 'expression avec article' 
+            });
+            found = true;
+            break;
+        }
+    }
+    
+    // Si pas trouvé dans le dico, mettre sans article
+    if (!found) {
+        result.push(expression);
+        found = true;
+    }
 }
                 
                 if (!found) {
