@@ -1403,18 +1403,44 @@ for (const [frVerb, verbData] of Object.entries(dict.verbs)) {
                         }
                         
                         if (!found) {
-                            // Pluriels NG
-                            const pluralCheck = detectNgPlural(word);
-                            if (pluralCheck.isPlural && pluralCheck.frSingular) {
-                                const frPlural = makeFrenchPlural(pluralCheck.frSingular);
-                                result.push('les ' + frPlural);
-                                analysis.push({ 
-                                    original: word, 
-                                    translation: 'les ' + frPlural, 
-                                    type: 'nom (pluriel)' 
-                                });
-                                found = true;
-                            }
+                           // --- NG → FR : Pluriels des noms ---
+const pluralCheck = detectNgPlural(word);
+if (pluralCheck.isPlural && pluralCheck.frSingular) {
+  const frPlural = makeFrenchPlural(pluralCheck.frSingular);
+
+  let rendered; // pour l'analyse
+
+  if (suppressNextArticle) {
+    // Cas "aep mitheln" → "de ses chats" (pas de "les")
+    result.push(frPlural);
+    rendered = frPlural;
+    suppressNextArticle = false;
+
+  } else if (pendingDe) {
+    // Cas "de les chats" → "des chats"
+    if (result.length && result[result.length - 1] === 'de') {
+      result[result.length - 1] = 'des';
+    } else {
+      result.push('des');
+    }
+    result.push(frPlural);
+    rendered = 'des ' + frPlural;
+    pendingDe = false;
+
+  } else {
+    // Cas normal : article défini
+    result.push('les ' + frPlural);
+    rendered = 'les ' + frPlural;
+  }
+
+  analysis.push({ 
+    original: word, 
+    translation: rendered, 
+    type: 'nom (pluriel)' 
+  });
+
+  found = true;
+}
                         }
                     }
                     
