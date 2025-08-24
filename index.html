@@ -204,6 +204,27 @@ console.log("Script démarré");
             if (word.endsWith('d')) return word + 'd';
             return word + 'n';
         }
+
+        function contractDeArticle(article, noun) {
+    // Vérifie si le nom commence par une voyelle ou un "h"
+    const startsWithVowelOrH = /^[aeiouyhàáâäæéèêëïîôöùûüÿ]/i.test(noun);
+
+    if (article === 'le ') {
+        // de + le → du, ou de + l' si voyelle/h
+        return startsWithVowelOrH ? "de l'" : 'du ';
+    }
+    if (article === 'la ') {
+        // de + la → de la, ou de + l' si voyelle/h
+        return startsWithVowelOrH ? "de l'" : 'de la ';
+    }
+    if (article === 'les ') {
+        // de + les → des
+        return 'des ';
+    }
+    // par défaut (au cas où)
+    return 'de ';
+}
+
         
         function detectFrenchPlural(word) {
             for (const [singular, plural] of Object.entries(dict.irregularPlurals)) {
@@ -1093,6 +1114,22 @@ for (const [frVerb, verbData] of Object.entries(dict.verbs)) {
         }
         found = true;
     }
+
+                        if (word === 'de') {
+                        const next = words[i + 1] || '';
+                        const determiners = ['le','la','les','un','une','des','mon','ma','mes','ton','ta','tes',
+                                             'son','sa','ses','notre','nos','votre','vos','leur','leurs',
+                                             'ce','cet','cette','ces'];
+
+                         if (determiners.includes(next.toLowerCase())) {
+                                result.push('de');
+                                pendingDe = true;   // contraction avec l'article suivant
+                        } else {
+                                result.push('de');
+                                pendingDe = false;  // préposition nue : "langue de chat"
+                        }
+                                found = true;
+                }
     
    // Autres mots  
 if (!found) {
@@ -1130,6 +1167,9 @@ if (word.includes('|EXPR:') || word.includes('|')) {
             // Expressions composées (traitement partiel)
             let textToProcess = text.toLowerCase();
             let expressionAnalysis = [];
+
+                 let suppressNextArticle = false; // pour aep (possessif)
+    let pendingDe = false;           // pour de + article (du, des, de l’...)
 
         for (const [frExpr, ngData] of Object.entries(dict.expressions)) {
     const regex = new RegExp('\\b' + ngData.ng.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'g');
@@ -1270,6 +1310,9 @@ if (word.startsWith('vaen') && i + 1 < words.length) {
                             translation: possessif,
                             type: `aep → ${possessif} (contexte: sujet ${subject})`
                         });
+
+                        suppressNextArticle = true; // dire au traducteur: pas d'article après
+                        pendingDe = false;          // on ne contracte pas "de" ici
                         found = true;
                     }
                                                
@@ -1327,7 +1370,32 @@ for (const [frVerb, verbData] of Object.entries(dict.verbs)) {
                         for (const [frNoun, nounData] of Object.entries(dict.nouns)) {
                             if (nounData.ng === word) {
                                 const article = nounData.gender_fr === 'm' ? 'le ' : 'la ';
-                                result.push(article + frNoun);
+                                for (const [frNoun, nounData] of Object.entries(dict.nouns)) {
+  if (nounData.ng === word) {
+    const article = nounData.gender_fr === 'm' ? 'le ' : 'la ';
+
+    if (suppressNextArticle) {
+        result.push(frNoun);
+        suppressNextArticle = false;
+    } else if (pendingDe) {
+        // contraction "de + article"
+        const contracted = contractDeArticle(article, frNoun);
+        if (result.length && result[result.length - 1] === 'de') {
+            result[result.length - 1] = contracted.trim();
+        } else {
+            result.push(contracted.trim());
+        }
+        result.push(frNoun);
+        pendingDe = false;
+    } else {
+        result.push((article + frNoun).trim());
+    }
+
+    analysis.push({ original: word, translation: (article + frNoun).trim(), type: 'nom' });
+    found = true;
+    break;
+  }
+}
                                 analysis.push({ original: word, translation: article + frNoun, type: 'nom' });
                                 found = true;
                                 break;
