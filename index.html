@@ -977,31 +977,33 @@ if (['aurai', 'auras', 'aura', 'aurons', 'aurez', 'auront'].includes(word) && i 
                         }
                     }
                     
-                    // Verbes (avec tous les temps)
-                    // Verbes (avec tous les temps)
+             // Verbes (avec tous les temps) — robuste, insensible au pluriel qui suit
+let matched = false;
 for (const [frVerb, verbData] of Object.entries(dict.verbs)) {
-    for (const tense of ['présent', 'imparfait', 'futur']) {
-        const conjugated = conjugateFrench(frVerb, subject, tense);
-        if (conjugated === word) {
-            // Détecter le contexte pour la 3ème personne
-            let context = 'simple';
-            if (['il', 'elle', 'ils', 'elles'].includes(subject) && tense === 'présent') {
-    context = detectRelativeContext(words, i);
-}
-            
-            const ngForm = conjugateNG(verbData, subject, tense, context);
-            result.push(ngForm);
-            analysis.push({ 
-                original: word, 
-                translation: ngForm, 
-                type: `verbe (${subject}, ${tense}, ${context})` 
-            });
-            found = true;
-            break;
+  for (const tense of ['présent', 'imparfait', 'futur']) {
+    for (const person of ['je','tu','il','elle','nous','vous','ils','elles']) {
+      const conj = conjugateFrench(frVerb, person, tense);
+      if (conj === word) {
+        // Contexte relatif seulement pour 3e pers. au présent
+        let context = 'simple';
+        if ((person === 'il' || person === 'elle' || person === 'ils' || person === 'elles') && tense === 'présent') {
+          context = detectRelativeContext(words, i);
         }
-        }
-    if (found) break;
-        }        
+        const ngForm = conjugateNG(verbData, person, tense, context);
+        result.push(ngForm);
+        analysis.push({
+          original: word,
+          translation: ngForm,
+          type: `verbe (${person}, ${tense}, ${context})`
+        });
+        matched = true; found = true;
+        break;
+      }
+    }
+    if (matched) break;
+  }
+  if (matched) break;
+}       
                     if (!found) {
                         // Noms (singulier et pluriel)
                         const noun = dict.nouns[word];
