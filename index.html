@@ -988,20 +988,24 @@ if (['aurai', 'auras', 'aura', 'aurons', 'aurez', 'auront'].includes(word) && i 
         continue;
     }
 }
-                       // --- FR → NG : Auxiliaire ÊTRE + participe passé ---
+              // --- FR → NG : Auxiliaire ÊTRE + participe passé ---
+// Si futur → 'vaen + PP_NG' (comme AVOIR). Sinon → 'être_NG(conj) + PP_NG'.
 if (!found && i + 1 < words.length) {
-  const nextWord = words[i + 1];
+  const rawNext = (words[i + 1] || '');
+  const nextWord = rawNext.replace(/[.,;:!?…]+$/, ''); // enlève la ponctuation
 
-  // Trouver le verbe FR à partir du participe passé FR
-  const frPPToVerb = (pp) => {
+  const frPPToVerb = (ppRaw) => {
+    const pp = ppRaw
+      .toLowerCase()
+      .replace(/(ées|és|ée|é)$/i, 'é'); // ramène "allée/allés/allées" → "allé"
     for (const [frVerb, vData] of Object.entries(dict.verbs)) {
-      if (vData.fr_participle === pp) return vData;
+      if ((vData.fr_participle || '').toLowerCase() === pp) return vData;
     }
     return null;
   };
 
   const persons = ['je','tu','il','elle','nous','vous','ils','elles'];
-  const tenses  = ['présent','imparfait','futur']; // passé comp. / PQP / futur ant.
+  const tenses  = ['présent','imparfait','futur']; 
   let matched = false;
 
   for (const tense of tenses) {
@@ -1010,38 +1014,37 @@ if (!found && i + 1 < words.length) {
       const frAux = conjugateFrench('être', person, tense);
       if (frAux === word) {
         const vData = frPPToVerb(nextWord);
-        if (vData) {
-          const ngPP = vData.ng_radical + 'at';
+        if (!vData) break;
 
-          if (tense === 'futur') {
-            // ⚔️ FUTUR ANTÉRIEUR avec être → même traitement que "avoir"
-            result.push(`vaen ${ngPP}`);
-            analysis.push({
-              original: `${word} ${nextWord}`,
-              translation: `vaen ${ngPP}`,
-              type: 'futur antérieur (être)'
-            });
-          } else {
-            // Passé composé / Plus-que-parfait → être conjugué + PP
-            const ngAux = conjugateNG(dict.verbs['être'], person, tense, 'simple');
-            result.push(`${ngAux} ${ngPP}`);
-            analysis.push({
-              original: `${word} ${nextWord}`,
-              translation: `${ngAux} ${ngPP}`,
-              type: `temps composé avec être (${tense})`
-            });
-          }
+        const ngPP = vData.ng_radical + 'at';
 
-          i++;
-          found = true;
-          matched = true;
-          break;
+        if (tense === 'futur') {
+          result.push(`vaen ${ngPP}`);
+          analysis.push({
+            original: `${word} ${nextWord}`,
+            translation: `vaen ${ngPP}`,
+            type: 'futur antérieur (être)'
+          });
+        } else {
+          const ngAux = conjugateNG(dict.verbs['être'], person, tense, 'simple');
+          result.push(`${ngAux} ${ngPP}`);
+          analysis.push({
+            original: `${word} ${nextWord}`,
+            translation: `${ngAux} ${ngPP}`,
+            type: `temps composé avec être (${tense})`
+          });
         }
+
+        i++; found = true; matched = true; break;
       }
     }
   }
 }
-                    
+
+// coupe-circuit : si on a trouvé "être + PP", on saute le reste
+if (found) {
+  continue;
+}
                     // GESTION "DE + POSSESSIF" → "AEP"
                     if (word === 'de' && i + 1 < words.length) {
                         const nextWord = words[i + 1];
@@ -1076,6 +1079,18 @@ for (const [frVerb, verbData] of Object.entries(dict.verbs)) {
       break;
     }
 
+      // --- FR → NG : Participe passé isolé ---
+if (!found) {
+  for (const [frVerb, vData] of Object.entries(dict.verbs)) {
+    if (vData.fr_participle === word) {
+      result.push(vData.ng_radical + 'at');
+      analysis.push({ original: word, translation: vData.ng_radical + 'at', type: 'participe (isolé)' });
+      found = true;
+      break;
+    }
+  }
+}
+      
     // 2) Fallback : essayer toutes les personnes,
     //    en privilégiant 3sg (il/elle) pour lever l'ambiguïté "danse"
     const baseOrder = ['il','elle','je','tu','nous','vous','ils','elles'];
