@@ -1064,18 +1064,17 @@ for (const [frVerb, verbData] of Object.entries(dict.verbs)) {
         found = true;
     }
     
-    // Autres mots
-    if (!found) {
-        const other = dict.others[word];
-        if (other && (other.ng !== '' || other.show)) {
-            if (other.ng !== '') {
-                result.push(other.ng);
-                analysis.push({ original: word, translation: other.ng, type: other.type });
-            } else {
-                analysis.push({ original: word, translation: '[ignoré]', type: other.type });
-            }
-            found = true;
-        }
+   // Autres mots  
+if (!found) {
+    const other = dict.others[word];
+    if (other && other.ng !== '') {
+        result.push(other.ng);
+        analysis.push({ original: word, translation: other.ng, type: other.type });
+        found = true;
+    } else if (other && other.ng === '') {
+        // Articles : ignorés silencieusement
+        analysis.push({ original: word, translation: '[ignoré]', type: other.type });
+        found = true;
     }
 }
  // Reconnaître les morceaux d'expressions
