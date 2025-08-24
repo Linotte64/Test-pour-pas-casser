@@ -1351,6 +1351,15 @@ for (const [frAdj, ngAdj] of Object.entries(dict.adjectives)) {
         }
     }
         }
+                    // Mots fonctionnels (sens inverse NG → FR)
+for (const [frWord, otherData] of Object.entries(dict.others)) {
+    if (otherData.ng === word && otherData.ng !== '') {
+        result.push(frWord);
+        analysis.push({ original: word, translation: frWord, type: otherData.type });
+        found = true;
+        break;
+    }
+}
                     if (!found) {
                         // Autres (incluant pronoms)
                         const other = dict.others[word];
