@@ -977,33 +977,59 @@ if (['aurai', 'auras', 'aura', 'aurons', 'aurez', 'auront'].includes(word) && i 
                         }
                     }
                     
-             // Verbes (avec tous les temps) — robuste, insensible au pluriel qui suit
+            // Verbes (avec tous les temps) — d'abord le sujet détecté, puis fallback ordonné
 let matched = false;
 for (const [frVerb, verbData] of Object.entries(dict.verbs)) {
   for (const tense of ['présent', 'imparfait', 'futur']) {
-    for (const person of ['je','tu','il','elle','nous','vous','ils','elles']) {
+
+    // 1) Tentative avec le sujet détecté (comportement original)
+    const conjSubject = conjugateFrench(frVerb, subject, tense);
+    if (conjSubject === word) {
+      let context = 'simple';
+      if ((subject === 'il' || subject === 'elle' || subject === 'ils' || subject === 'elles') && tense === 'présent') {
+        context = detectRelativeContext(words, i);
+      }
+      const ngForm = conjugateNG(verbData, subject, tense, context);
+      result.push(ngForm);
+      analysis.push({ original: word, translation: ngForm, type: `verbe (${subject}, ${tense}, ${context})` });
+      matched = true; found = true;
+      break;
+    }
+
+    // 2) Fallback : essayer toutes les personnes,
+    //    en privilégiant 3sg (il/elle) pour lever l'ambiguïté "danse"
+    const baseOrder = ['il','elle','je','tu','nous','vous','ils','elles'];
+
+    // indice: si un pronom FR est présent AVANT le verbe, on le met en tête
+    const left = words.slice(0, i).map(w => w.toLowerCase());
+    const pronouns = ['je','tu','il','elle','nous','vous','ils','elles'];
+    const hinted = pronouns.filter(p => left.includes(p));
+    const dedup = arr => [...new Set(arr)];
+    const personsToTry = dedup([...hinted, ...baseOrder]);
+
+    let detectedPerson = null;
+    for (const person of personsToTry) {
       const conj = conjugateFrench(frVerb, person, tense);
       if (conj === word) {
-        // Contexte relatif seulement pour 3e pers. au présent
-        let context = 'simple';
-        if ((person === 'il' || person === 'elle' || person === 'ils' || person === 'elles') && tense === 'présent') {
-          context = detectRelativeContext(words, i);
-        }
-        const ngForm = conjugateNG(verbData, person, tense, context);
-        result.push(ngForm);
-        analysis.push({
-          original: word,
-          translation: ngForm,
-          type: `verbe (${person}, ${tense}, ${context})`
-        });
-        matched = true; found = true;
+        detectedPerson = person;
         break;
       }
     }
-    if (matched) break;
+
+    if (detectedPerson) {
+      let context = 'simple';
+      if ((detectedPerson === 'il' || detectedPerson === 'elle' || detectedPerson === 'ils' || detectedPerson === 'elles') && tense === 'présent') {
+        context = detectRelativeContext(words, i);
+      }
+      const ngForm = conjugateNG(verbData, detectedPerson, tense, context);
+      result.push(ngForm);
+      analysis.push({ original: word, translation: ngForm, type: `verbe (${detectedPerson}, ${tense}, ${context})` });
+      matched = true; found = true;
+      break;
+    }
   }
   if (matched) break;
-}       
+}
                     if (!found) {
                         // Noms (singulier et pluriel)
                         const noun = dict.nouns[word];
