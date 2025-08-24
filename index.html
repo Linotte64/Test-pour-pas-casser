@@ -225,6 +225,12 @@ console.log("Script démarré");
     return 'de ';
 }
 
+        function agreePastParticiple(basePP, gender, isPlural) {
+  let result = basePP;
+  if (gender === 'f') result += 'e';
+  if (isPlural) result += 's';
+  return result;
+}
         
         function detectFrenchPlural(word) {
             for (const [singular, plural] of Object.entries(dict.irregularPlurals)) {
@@ -1259,6 +1265,59 @@ if (word.startsWith('vaen') && i + 1 < words.length) {
         }
         if (found) continue;
     }
+}
+
+                    // --- NG → FR : Auxiliaire ÊTRE + participe passé (accord du PP) ---
+if (!found) {
+  // Si le mot suivant ressemble à un participe NG (radical + 'at')
+  if (i + 1 < words.length && words[i + 1].endsWith('at')) {
+    const ppToken = words[i + 1]; // ex. addat
+    let matched = false;
+
+    // On essaie de voir si le mot courant est une forme NG de "être"
+    const etreData = dict.verbs['être'];
+    const persons = ['je','tu','il','elle','nous','vous','ils','elles'];
+    const tenses = ['présent','imparfait','futur']; // donnera: passé composé / plus-que-parfait / futur antérieur
+
+    for (const tense of tenses) {
+      if (matched) break;
+      for (const person of persons) {
+        const ngAux = conjugateNG(etreData, person, tense, 'simple');
+        if (ngAux === word) {
+          // On mappe le participe NG (radical + 'at') vers le verbe FR
+          const ngRadical = ppToken.slice(0, -2); // "addat" -> "add"
+          let frVerb = null, vData = null;
+
+          for (const [fv, vd] of Object.entries(dict.verbs)) {
+            if (vd.ng_radical === ngRadical) { frVerb = fv; vData = vd; break; }
+          }
+
+          if (frVerb && vData) {
+            // Forme FR de l'auxiliaire "être" selon la personne et le temps détectés
+            const frAux = conjugateFrench('être', person, tense);
+
+            // Accord du participe passé avec le sujet (personne détectée)
+            const isPlural = (person === 'nous' || person === 'vous' || person === 'ils' || person === 'elles');
+            const gender   = (person === 'elle' || person === 'elles') ? 'f' : 'm';
+            const agreedPP = agreePastParticiple(vData.fr_participle, gender, isPlural);
+
+            // On sort le groupe verbal + on consomme le participe (i++)
+            result.push(`${frAux} ${agreedPP}`);
+            analysis.push({
+              original: `${word} ${ppToken}`,
+              translation: `${frAux} ${agreedPP}`,
+              type: `temps composé avec être (${tense})`
+            });
+
+            i++;          // on saute le token participe passé déjà traité
+            found = true; // on a géré ce morceau
+            matched = true;
+            break;
+          }
+        }
+      }
+    }
+  }
 }
                     
                     // GESTION "AEP" → Analyser le contexte pour "DE + POSSESSIF"
